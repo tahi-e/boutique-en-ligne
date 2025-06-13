@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Site Boutique</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f5f5f5;
+    }
+    header {
+      background: #2d2976;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    #search-container {
+      text-align: center;
+      margin: 15px 0;
+    }
+    #search-input {
+      width: 300px;
+      padding: 8px 12px;
+      font-size: 1em;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    #produits {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 20px;
+    }
+    .produit {
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 1rem;
+  width: 200px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Important pour pousser le bouton en bas */
+  height: 350px; /* Fixe la hauteur pour tous les produits */
+}
+
+    .produit img {
+  max-width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 5px;
+    }
+
+    .produit button {
+      background: #2d2976;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    #cart {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      background: #2d2976;
+      color: white;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      font-size: 1.2em;
+      line-height: 40px;
+      text-align: center;
+      cursor: pointer;
+      z-index: 9999;
+    }
+
+    #panier {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: 320px;
+      background: white;
+      box-shadow: -4px 0 10px rgba(0,0,0,0.3);
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+    }
+    #panier.open {
+      transform: translateX(0);
+    }
+    #panier-content {
+      padding: 20px;
+      overflow-y: auto;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    #panier h2 {
+      margin-top: 0;
+      color: #2d2976;
+    }
+    #fermer-panier {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 1.5em;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #2d2976;
+    }
+    #panier-liste {
+      flex-grow: 1;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+    #panier-liste p {
+      font-style: italic;
+      color: #777;
+    }
+    #panier-liste ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+    }
+    #panier-liste li {
+      border-bottom: 1px solid #ccc;
+      padding: 10px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #panier-liste li:last-child {
+      border-bottom: none;
+    }
+    .btn-supprimer {
+      background: #e74c3c;
+      border: none;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.9em;
+    }
+
+    #paiement-panier {
+      margin-top: 20px;
+      border-top: 1px solid #ccc;
+      padding-top: 15px;
+    }
+    #whatsapp-link-panier {
+      background: #25D366;
+      color: white;
+      font-weight: bold;
+      text-decoration: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-size: 1.1em;
+      text-align: center;
+      display: block;
+      margin-bottom: 15px;
+    }
+    #paiement-form-panier {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    #paiement-form-panier h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    #paiement-form-panier input,
+    #paiement-form-panier select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    #paiement-form-panier button {
+      width: 100%;
+      background: #4CAF50;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Ma Boutique en Ligne</h1>
+  </header>
+
+  <div id="search-container">
+    <input
+      type="text"
+      id="search-input"
+      placeholder="Rechercher un produit..."
+      aria-label="Recherche des produits"
+    />
+  </div>
+
+  <div id="produits"></div>
+
+  <div id="cart" aria-label="Voir le panier" role="button" tabindex="0">0</div>
+
+  <div id="panier" aria-hidden="true" role="dialog" aria-label="Panier d'achat">
+    <div id="panier-content">
+      <h2>Votre Panier</h2>
+      <button id="fermer-panier" aria-label="Fermer le panier">&times;</button>
+      <div id="panier-liste">
+        <p>Votre panier est vide.</p>
+      </div>
+
+      <div id="paiement-panier" style="display:none;">
+        <a id="whatsapp-link-panier" href="#" target="_blank" style="display:none;">
+          Commander via WhatsApp
+        </a>
+        <form id="paiement-form-panier" style="display:none;">
+          <h3>Paiement en ligne</h3>
+          <input type="text" id="nom-panier" placeholder="Votre nom" required />
+          <input type="email" id="email-panier" placeholder="Votre email" required />
+          <select id="paiement-client-panier" required>
+            <option value="">-- Sélectionnez un mode de paiement --</option>
+            <option value="cash">Paiement cash à la livraison</option>
+            <option value="mobile_money">Payer par compte Mobile Money</option>
+            <option value="wave">Payer par compte Wave</option>
+          </select>
+          <div id="champ-numero-panier" style="display:none;">
+            <input type="text" id="numero-mobile-panier" placeholder="Numéro Mobile Money / Wave" />
+          </div>
+          <button type="submit">Valider</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const produits = [
+      {
+        nom: "Veste blanche zippée",
+        prix: 45000,
+        image: "https://m.media-amazon.com/images/I/71YMFHrqgbL._AC_SX522_.jpg",
+      },
+      {
+        nom: "Sac à dos noir",
+        prix: 35000,
+        image: "https://m.media-amazon.com/images/I/71LTichSPXL._AC_SX522_.jpg",
+      },
+      {
+        nom: "Montre élégante",
+        prix: 60000,
+        image: "https://m.media-amazon.com/images/I/71fjpdCUniL._AC_SX522_.jpg",
+      },
+      {
+    nom: "Veste blanche zippée",
+    prix: 45000,
+    image: "https://m.media-amazon.com/images/I/71YMFHrqgbL._AC_SX522_.jpg",
+  },
+  {
+    nom: "Sac à dos noir",
+    prix: 35000,
+    image: "https://m.media-amazon.com/images/I/71LTichSPXL._AC_SX522_.jpg",
+  },
+  {
+    nom: "Montre élégante",
+    prix: 60000,
+    image: "https://m.media-amazon.com/images/I/71fjpdCUniL._AC_SX522_.jpg",
+  },
+  {
+    nom: "Chaussures de sport",
+    prix: 40000,
+    image: "https://m.media-amazon.com/images/I/71RHCC82LWL._AC_SX522_.jpg",
+  },
+  {
+    nom: "Casque Bluetooth",
+    prix: 25000,
+    image: "https://m.media-amazon.com/images/I/61Dh5CzSXWL._AC_SX522_.jpg",
+  },
+  {
+    nom: "Clavier sans fil",
+    prix: 15000,
+    image: "https://img.freepik.com/photos-premium/t-shirt-capuche-base-surdimensionne_1256663-47.jpg?ga=GA1.1.2141502830.1712792442&semt=ais_hybrid&w=740",
+  },
+  {
+    nom: "Lunettes de soleil",
+    prix: 12000,
+    image: "https://img.freepik.com/photos-premium/image-capuche-blanche-vue-frontale-isolee-fond-blanc_373676-2890.jpg?ga=GA1.1.2141502830.1712792442&semt=ais_hybrid&w=740",
+  },
+  {
+    nom: "Porte-monnaie cuir",
+    prix: 18000,
+    image: "https://img.freepik.com/photos-gratuite/pull-blanc-simple-vetements-streetwear-unisexe_53876-101504.jpg?ga=GA1.1.2141502830.1712792442&semt=ais_hybrid&w=740",
+  },
+  {
+    nom: "Caméra de sécurité Wi-Fi",
+    prix: 30000,
+    image: "https://img.freepik.com/photos-gratuite/rendu-nature-morte-affichage-vestes_23-2149745027.jpg?ga=GA1.1.2141502830.1712792442&semt=ais_hybrid&w=740",
+  },
+  {
+    nom: "Bracelet connecté",
+    prix: 22000,
+    image: "https://img.freepik.com/photos-premium/images-gratuites-t-shirt_359917-886.jpg?ga=GA1.1.2141502830.1712792442&semt=ais_hybrid&w=740",
+  },
+  {
+    nom: "Mini projecteur LED",
+    prix: 50000,
+    image: "https://media.vertbaudet.com/Pictures/vertbaudet/285667/pull-bebe-col-en-tissu-liberty-cyrillus.jpg",
+  },
+  {
+    nom: "Lampe de chevet tactile",
+    prix: 10000,
+    image: "https://oplayce.ci/cdn/shop/products/100_1024x1024.jpg?v=1618910812",
+  }
+   ];
+
+    let affichageProduits = [...produits];
+    const produitsContainer = document.getElementById("produits");
+    let panier = [];
+
+    function afficherProduits() {
+      produitsContainer.innerHTML = "";
+      if (affichageProduits.length === 0) {
+        produitsContainer.innerHTML = "<p>Aucun produit trouvé.</p>";
+        return;
+      }
+      affichageProduits.forEach((produit) => {
+        const div = document.createElement("div");
+        div.classList.add("produit");
+        div.innerHTML = `
+          <img src="${produit.image}" alt="${produit.nom}" />
+          <h3>${produit.nom}</h3>
+          <p>Prix : ${produit.prix.toLocaleString()} FCFA</p>
+          <button onclick="ajouterAuPanier('${produit.nom}')">Ajouter au panier</button>
+        `;
+        produitsContainer.appendChild(div);
+      });
+    }
+
+    function ajouterAuPanier(nomProduit) {
+      const produit = produits.find(p => p.nom === nomProduit);
+      if (produit) {
+        panier.push(produit);
+        document.getElementById("cart").textContent = panier.length;
+
+        const waBtn = document.getElementById("whatsapp-link-panier");
+        let message = "Bonjour, je souhaite commander :%0A";
+        let total = 0;
+        panier.forEach((p) => {
+          message += `- ${p.nom} (${p.prix.toLocaleString()} FCFA)%0A`;
+          total += p.prix;
+        });
+        message += `%0ATotal: ${total.toLocaleString()} FCFA`;
+        waBtn.href = `https://wa.me/2250502660176?text=${message}`;
+        waBtn.style.display = "block";
+
+        document.getElementById("paiement-form-panier").style.display = "block";
+        afficherPanier();
+      }
+    }
+
+    function afficherPanier() {
+      const panierListe = document.getElementById("panier-liste");
+      if (panier.length === 0) {
+        panierListe.innerHTML = "<p>Votre panier est vide.</p>";
+        document.getElementById("paiement-panier").style.display = "none";
+      } else {
+        let html = "<ul>";
+        panier.forEach((p, i) => {
+          html += `<li>
+            ${p.nom} - ${p.prix.toLocaleString()} FCFA
+            <button class="btn-supprimer" onclick="supprimerDuPanier(${i})">Supprimer</button>
+          </li>`;
+        });
+        html += "</ul>";
+        panierListe.innerHTML = html;
+        document.getElementById("paiement-panier").style.display = "block";
+      }
+    }
+
+    function supprimerDuPanier(index) {
+      panier.splice(index, 1);
+      document.getElementById("cart").textContent = panier.length;
+
+      const waBtn = document.getElementById("whatsapp-link-panier");
+      if (panier.length === 0) {
+        waBtn.style.display = "none";
+        document.getElementById("paiement-form-panier").style.display = "none";
+        document.getElementById("paiement-panier").style.display = "none";
+      } else {
+        let message = "Bonjour, je souhaite commander :%0A";
+        let total = 0;
+        panier.forEach((p) => {
+          message += `- ${p.nom} (${p.prix.toLocaleString()} FCFA)%0A`;
+          total += p.prix;
+        });
+        message += `%0ATotal: ${total.toLocaleString()} FCFA`;
+        waBtn.href = `https://wa.me/2250502660176?text=${message}`;
+      }
+      afficherPanier();
+    }
+
+    document.getElementById("cart").addEventListener("click", () => {
+      document.getElementById("panier").classList.add("open");
+      document.getElementById("panier").setAttribute("aria-hidden", "false");
+    });
+
+    document.getElementById("fermer-panier").addEventListener("click", () => {
+      document.getElementById("panier").classList.remove("open");
+      document.getElementById("panier").setAttribute("aria-hidden", "true");
+    });
+
+    const paiementSelectPanier = document.getElementById("paiement-client-panier");
+    const champNumeroPanier = document.getElementById("champ-numero-panier");
+
+    paiementSelectPanier.addEventListener("change", () => {
+      const val = paiementSelectPanier.value;
+      champNumeroPanier.style.display = (val === "mobile_money" || val === "wave") ? "block" : "none";
+    });
+
+    document.getElementById("paiement-form-panier").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const nom = document.getElementById("nom-panier").value.trim();
+      const email = document.getElementById("email-panier").value.trim();
+      const modePaiement = paiementSelectPanier.value;
+      const numeroMobile = document.getElementById("numero-mobile-panier").value.trim();
+
+      if (!nom || !email || !modePaiement) {
+        alert("Veuillez remplir tous les champs obligatoires.");
+        return;
+      }
+      if ((modePaiement === "mobile_money" || modePaiement === "wave") && !numeroMobile) {
+        alert("Veuillez renseigner votre numéro Mobile Money / Wave.");
+        return;
+      }
+
+      alert("Merci pour votre commande, nous allons vous contacter.");
+      this.reset();
+      panier = [];
+      document.getElementById("cart").textContent = 0;
+      document.getElementById("whatsapp-link-panier").style.display = "none";
+      this.style.display = "none";
+      document.getElementById("paiement-panier").style.display = "none";
+      afficherPanier();
+      document.getElementById("panier").classList.remove("open");
+    });
+
+    document.getElementById("search-input").addEventListener("input", () => {
+      const val = document.getElementById("search-input").value.trim().toLowerCase();
+      affichageProduits = !val ? [...produits] : produits.filter(p => p.nom.toLowerCase().includes(val));
+      afficherProduits();
+    });
+
+    afficherProduits();
+    afficherPanier();
+  </script>
+</body>
+</html>
